@@ -1,4 +1,5 @@
-var express = require('express'),
+var prom = require('prom-client'),
+    express = require('express'),
     bodyParser = require('body-parser'),
     backend = require('./backend');
 
@@ -85,6 +86,22 @@ app.delete('/api/:id', function(req, res) {
   todos.delete(req.params.id, createCallback(res, function(todo) {
     res.send(createTodo(req, todo));
   }));
+});
+
+const port = Number(process.env.PORT || 5000);
+
+console.log(`Todo service listening on port ${port}`);
+
+app.listen(port);
+
+module.exports = app;
+
+// ----- Prometheus metrics
+
+prom.collectDefaultMetrics();
+app.get('/metrics', (req, res) => {
+	res.set('Content-Type', prom.register.contentType);
+	res.end(prom.register.metrics());
 });
 
 const port = Number(process.env.PORT || 5000);
